@@ -1,0 +1,28 @@
+version: '2'
+services:
+  app:
+    image: prometheus-demo
+    ports:
+      - 8080
+    environment:
+      - SPRING_CLOUD_CONSUL_HOST=consul
+  grafana:
+    ports:
+      - "3000:3000"
+    volumes:
+      - /var/lib/grafana
+    links:
+      - prometheus
+    image: grafana/grafana
+  prometheus:
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus-grafana/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    image: prom/prometheus
+  consul:
+    ports:
+      - "8500:8500"
+    image: consul
