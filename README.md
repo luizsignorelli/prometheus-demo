@@ -18,10 +18,10 @@ You can scale the application:
 $ docker-compose up --scale app=2
 ```
 
-A load balancer is included on `docker-compose.yml` that will pick up app instances automatically, so that you can just 
-hit `localhost:80`.
+A load balancer is included on `docker-compose.yml` that will pick up app instances automatically, so you can just 
+hit `localhost:80` to access the demo application.
 
-To access the services present on `docker-compose.yml`:
+To access other services present on `docker-compose.yml`:
 * Consul: `http://localhost:8500`
 * Prometheus: `http://localhost:9090`
 * Grafana: `http://localhost:3000`
