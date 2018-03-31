@@ -6,6 +6,14 @@ services:
       - 8080
     environment:
       - SPRING_CLOUD_CONSUL_HOST=consul
+  lb:
+    image: dockercloud/haproxy
+    links:
+      - app
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 80:80
   grafana:
     ports:
       - "3000:3000"

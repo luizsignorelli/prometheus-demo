@@ -6,4 +6,4 @@
 # -t is the time ab will keep requesting
 # -n is the number of requests to run in the test
 
-ab -p order-request.json -T application/json -c 1 -t $1 -n 100000000 http://localhost:8080/orders
+ab -p order-request.json -T application/json -c 1 -n 100000000 http://127.0.0.1/orders

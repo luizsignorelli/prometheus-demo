@@ -18,21 +18,10 @@ You can scale the application:
 $ docker-compose up --scale app=2
 ```
 
-To check the application ports:
-```
-$ docker-compose ps
+A load balancer is included on `docker-compose.yml` that will pick up app instances automatically, so that you can just 
+hit `localhost:80`.
 
-           Name                          Command               State                                              Ports
--------------------------------------------------------------------------------------------------------------------------------------------------------------------
-prometheusdemo_app_1          /bin/sh -c exec java -Xms$ ...   Up      0.0.0.0:32774->8080/tcp
-prometheusdemo_app_2          /bin/sh -c exec java -Xms$ ...   Up      0.0.0.0:32775->8080/tcp
-prometheusdemo_consul_1       docker-entrypoint.sh agent ...   Up      8300/tcp, 8301/tcp, 8301/udp, 8302/tcp, 8302/udp, 0.0.0.0:8500->8500/tcp, 8600/tcp, 8600/udp
-prometheusdemo_grafana_1      /run.sh                          Up      0.0.0.0:3000->3000/tcp
-prometheusdemo_prometheus_1   /bin/prometheus --config.f ...   Up      0.0.0.0:9090->9090/tcp
-```
-
-Here we can see that the application is accessible through ports 32774 and 32775.
-
+To access the services present on `docker-compose.yml`:
 * Consul: `http://localhost:8500`
 * Prometheus: `http://localhost:9090`
 * Grafana: `http://localhost:3000`
