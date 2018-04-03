@@ -7,13 +7,14 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.util.*
 import java.util.concurrent.TimeUnit
-import java.util.logging.Logger
+import org.springframework.http.HttpStatus
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
+import org.springframework.web.bind.annotation.ControllerAdvice
+
+
 
 
 @RestController
@@ -45,15 +46,26 @@ class OrdersApi @Autowired constructor(val processor: OrderProcessor) {
     }
 }
 
+@ControllerAdvice
+class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
+
+    @ExceptionHandler(value = RuntimeException::class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ResponseBody
+    protected fun handle(ex: RuntimeException): String {
+        return "This should be application specific"
+    }
+}
+
 object OrderRepository {
 
     private val ordersCounter = Counter.build()
-            .name("counter_order")
+            .name("orders_total")
             .labelNames("status")
             .help("Orders counter").register()
 
     private val ordersProcessingGauge = Gauge.build()
-            .name("gauge_order")
+            .name("processing_orders")
             .labelNames("status")
             .help("Orders gauge").register()
 
@@ -77,6 +89,16 @@ object OrderRepository {
         storage[id] = storage[id]!!.copy(status = status)
         ordersCounter.labels( status ).inc()
         ordersProcessingGauge.labels(oldStatus).dec()
+        storage.remove(id)
+    }
+
+    fun fail(id: UUID) {
+        val status = "failed"
+        val oldStatus = storage[id]?.status
+        storage[id] = storage[id]!!.copy(status = status)
+        ordersCounter.labels( status ).inc()
+        ordersProcessingGauge.labels(oldStatus).dec()
+        storage.remove(id)
     }
 
     fun size(): Int = storage.size
@@ -104,14 +126,22 @@ class OrderProcessor {
 
     @Async("orderProcessorExecutor")
     fun process(order: Order) {
-        log.info("Started order {} processing.", order.id)
-        doProcess(order)
-        log.info("Finished order {} processing.", order.id)
+        try {
+            log.info("Started order {} processing.", order.id)
+            OrderRepository.processing(order.id)
+            doProcess(order)
+            OrderRepository.complete(order.id)
+            log.info("Finished order {} processing.", order.id)
+        } catch (e: Exception) {
+            OrderRepository.fail(order.id)
+            throw e
+        }
     }
 
     private fun doProcess(order: Order) {
-        OrderRepository.processing(order.id)
+        if (RandomUtils.nextLong(1, 11) > 2) {
+            throw RuntimeException("order ${order.id} processing failed.")
+        }
         TimeUnit.MILLISECONDS.sleep(RandomUtils.nextLong(100, 2000))
-        OrderRepository.complete(order.id)
     }
 }
