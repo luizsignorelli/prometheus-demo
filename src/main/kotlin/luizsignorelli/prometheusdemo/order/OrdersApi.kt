@@ -5,6 +5,8 @@ import io.prometheus.client.Gauge
 import org.apache.commons.lang3.RandomUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.cloud.context.config.annotation.RefreshScope
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.*
@@ -119,10 +121,13 @@ data class Item(
         val quantity: Int
 )
 
-@Component
+@Component @RefreshScope
 class OrderProcessor {
 
     val log = LoggerFactory.getLogger("OrdersProcessor")!!
+
+    @Value("\${error.rate:-0}")
+    var errorRate: Int = 0
 
     @Async("orderProcessorExecutor")
     fun process(order: Order) {
@@ -139,7 +144,8 @@ class OrderProcessor {
     }
 
     private fun doProcess(order: Order) {
-        if (RandomUtils.nextLong(1, 11) > 2) {
+        log.info("Current error rate: $errorRate")
+        if (RandomUtils.nextLong(1, 11) < errorRate) {
             throw RuntimeException("order ${order.id} processing failed.")
         }
         TimeUnit.MILLISECONDS.sleep(RandomUtils.nextLong(100, 2000))
