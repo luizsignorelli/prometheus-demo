@@ -18,17 +18,19 @@ services:
       - 80:80
   grafana:
     ports:
-      - "3000:3000"
+      - 3000:3000
     volumes:
-      - /var/lib/grafana
+      - ./grafana/config.ini:/etc/grafana/config.ini
+      - ./grafana/conf/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/conf/provisioning/datasources:/etc/grafana/provisioning/datasources
     links:
       - prometheus
     image: grafana/grafana
   prometheus:
     ports:
-      - "9090:9090"
+      - 9090:9090
     volumes:
-      - ./prometheus-grafana/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
     image: prom/prometheus:v2.2.1
@@ -36,5 +38,5 @@ services:
       - consul
   consul:
     ports:
-      - "8500:8500"
+      - 8500:8500
     image: consul

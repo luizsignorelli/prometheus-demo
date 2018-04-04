@@ -15,7 +15,6 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 2,
   "links": [],
   "panels": [
     {
@@ -23,7 +22,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Local Prometheus",
+      "datasource": "Prometheus",
       "fill": 1,
       "gridPos": {
         "h": 8,
@@ -103,7 +102,7 @@
       "bars": true,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Local Prometheus",
+      "datasource": "Prometheus",
       "fill": 1,
       "gridPos": {
         "h": 5,
