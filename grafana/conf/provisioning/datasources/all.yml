@@ -7,4 +7,6 @@ datasources:
    name: Prometheus
    type: prometheus
    url: http://localhost:9090
+   jsonData:
+     timeInterval: 5s
    version: 1
