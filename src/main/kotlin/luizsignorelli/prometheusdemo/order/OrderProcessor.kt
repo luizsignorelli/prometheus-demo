@@ -2,11 +2,13 @@ package luizsignorelli.prometheusdemo.order
 
 import org.apache.commons.lang3.RandomUtils
 import org.slf4j.LoggerFactory
+import org.springframework.cloud.context.config.annotation.RefreshScope
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
 @Component
+@RefreshScope
 class OrderProcessor {
 
     val errorRate = 0

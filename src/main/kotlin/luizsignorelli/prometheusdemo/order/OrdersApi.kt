@@ -2,10 +2,6 @@ package luizsignorelli.prometheusdemo.order
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.cloud.context.config.annotation.RefreshScope
-import org.springframework.scheduling.annotation.Async
-import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.*
 import java.util.*
 import org.springframework.http.HttpStatus
