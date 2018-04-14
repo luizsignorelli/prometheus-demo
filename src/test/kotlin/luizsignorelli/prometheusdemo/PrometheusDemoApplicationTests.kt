@@ -68,8 +68,10 @@ class PrometheusDemoApplicationTests {
                 .andDo(print())
                 .andExpect(status().isOk)
                 .andExpect(content().string(containsString("counter_status_200_orders")))
-                .andExpect(content().string(containsString("counter_order{status=\"created\"")))
-                .andExpect(content().string(containsString("counter_order{status=\"completed\"")))
+                .andExpect(content().string(containsString("orders_total{status=\"created\"")))
+                .andExpect(content().string(containsString("orders_total{status=\"completed\"")))
+                .andExpect(content().string(containsString("processing_orders")))
+                .andExpect(content().string(containsString("orders_processing_duration_seconds")))
     }
 
 }

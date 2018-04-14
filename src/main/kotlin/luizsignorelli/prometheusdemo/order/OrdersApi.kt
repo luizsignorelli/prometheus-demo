@@ -1,8 +1,5 @@
 package luizsignorelli.prometheusdemo.order
 
-import io.prometheus.client.Counter
-import io.prometheus.client.Gauge
-import org.apache.commons.lang3.RandomUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -11,12 +8,9 @@ import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.*
 import java.util.*
-import java.util.concurrent.TimeUnit
 import org.springframework.http.HttpStatus
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import org.springframework.web.bind.annotation.ControllerAdvice
-
-
 
 
 @RestController
@@ -61,93 +55,32 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
 
 object OrderRepository {
 
-    private val ordersCounter = Counter.build()
-            .name("orders_total")
-            .labelNames("status")
-            .help("Orders counter").register()
-
-    private val ordersProcessingGauge = Gauge.build()
-            .name("processing_orders")
-            .labelNames("status")
-            .help("Orders gauge").register()
-
     private val storage: MutableMap<UUID, Order> = mutableMapOf()
 
     fun save(order: Order): String {
         storage[order.id] = order
-        ordersCounter.labels( order.status ).inc()
+        OrderMetrics.orderCreated()
         return order.id.toString()
     }
 
     fun processing(id: UUID) {
-        val status = "processing"
-        storage[id] = storage[id]!!.copy(status = status)
-        ordersProcessingGauge.labels(status).inc()
+        storage[id] = storage[id]!!.copy(status = OrderStatus.PROCESSING)
+        OrderMetrics.orderProcessingStarted()
     }
 
     fun complete(id: UUID) {
-        val status = "completed"
-        val oldStatus = storage[id]?.status
-        storage[id] = storage[id]!!.copy(status = status)
-        ordersCounter.labels( status ).inc()
-        ordersProcessingGauge.labels(oldStatus).dec()
+        storage[id] = storage[id]!!.copy(status = OrderStatus.COMPLETED)
+        OrderMetrics.orderCompleted()
         storage.remove(id)
     }
 
     fun fail(id: UUID) {
-        val status = "failed"
-        val oldStatus = storage[id]?.status
-        storage[id] = storage[id]!!.copy(status = status)
-        ordersCounter.labels( status ).inc()
-        ordersProcessingGauge.labels(oldStatus).dec()
+        storage[id] = storage[id]!!.copy(status = OrderStatus.FAILED)
+        OrderMetrics.orderFailed()
         storage.remove(id)
     }
 
     fun size(): Int = storage.size
     fun get(orderId: UUID): Order? = storage[orderId]
-}
 
-data class Order(
-        val id: UUID = UUID.randomUUID(),
-        val customerId: String,
-        val items: List<Item>,
-        val status: String = "created"
-)
-
-data class Item(
-        val id: UUID = UUID.randomUUID(),
-        val productId: String,
-        val price: Double,
-        val quantity: Int
-)
-
-@Component @RefreshScope
-class OrderProcessor {
-
-    val log = LoggerFactory.getLogger("OrdersProcessor")!!
-
-    @Value("\${error.rate:-0}")
-    var errorRate: Int = 0
-
-    @Async("orderProcessorExecutor")
-    fun process(order: Order) {
-        try {
-            log.info("Started order {} processing.", order.id)
-            OrderRepository.processing(order.id)
-            doProcess(order)
-            OrderRepository.complete(order.id)
-            log.info("Finished order {} processing.", order.id)
-        } catch (e: Exception) {
-            OrderRepository.fail(order.id)
-            throw e
-        }
-    }
-
-    private fun doProcess(order: Order) {
-        log.info("Current error rate: $errorRate")
-        if (RandomUtils.nextLong(1, 11) < errorRate) {
-            throw RuntimeException("order ${order.id} processing failed.")
-        }
-        TimeUnit.MILLISECONDS.sleep(RandomUtils.nextLong(100, 2000))
-    }
 }
