@@ -22,7 +22,6 @@ class PrometheusDemoApplication {
     fun threadPoolTaskExecutor(): Executor {
         val threadPoolTaskExecutor = ThreadPoolTaskExecutor()
         threadPoolTaskExecutor.corePoolSize = 1000
-//        threadPoolTaskExecutor.maxPoolSize = 2
         return threadPoolTaskExecutor
     }
 }
