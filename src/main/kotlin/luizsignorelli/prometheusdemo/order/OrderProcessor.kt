@@ -2,16 +2,15 @@ package luizsignorelli.prometheusdemo.order
 
 import org.apache.commons.lang3.RandomUtils
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.cloud.context.config.annotation.RefreshScope
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
-@Component
-@RefreshScope
-class OrderProcessor {
+@Component @RefreshScope
+class OrderProcessor(@Value("\${error.rate:0}") val errorRate: Int) {
 
-    val errorRate = 0
     val log = LoggerFactory.getLogger("OrdersProcessor")!!
 
     @Async("orderProcessorExecutor")
@@ -31,6 +30,7 @@ class OrderProcessor {
     }
 
     private fun doProcess(order: Order) {
+        log.info("Current error rate: {}.", errorRate)
         if (RandomUtils.nextLong(1, 11) < errorRate) {
             throw RuntimeException("order ${order.id} processing failed.")
         }
